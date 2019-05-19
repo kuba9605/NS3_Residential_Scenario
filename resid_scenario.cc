@@ -84,6 +84,7 @@ main (int argc, char *argv[])
   BuildingsHelper::Install (wifiStaNodes);
   Ptr<ConstantPositionMobilityModel> cpmmAp[nFlats];
   Ptr<ConstantPositionMobilityModel> cpmmSta[nFlats][nSta];
+  //TODO: XY position of APs and STAs should be random within the flat
   for(uint32_t i=0;i<nFlats;i++){
     cpmmAp[i] = wifiApNodes.Get(i)->GetObject<ConstantPositionMobilityModel> ();
     cpmmAp[i]->SetPosition(Vector((5+i*10) % (xnFlats*10), int(5+10*ceil(i/xnFlats)) % (ynFlats*10), 1.5 + 3*int(ceil(i/(xnFlats*ynFlats)))));
@@ -94,5 +95,18 @@ main (int argc, char *argv[])
         std::cout << "\tSTA Postion: " << cpmmSta[i][j]->GetPosition() << std::endl;
     }
   }
+  
+  BuildingsHelper::MakeMobilityModelConsistent ();
+  //TODO: Implement building aware pathloss model
+  
+  //TODO: Add layer 3 (Internet Stack)
+  
+  //TODO: Setup applications (e.g. UdpClient)
+  
+  //TODO: Save pcap files
+  
+  //TODO: Perform simulation
+  
+  
   return 0;
 }
