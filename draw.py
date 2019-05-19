@@ -39,8 +39,11 @@ for row in csv_reader:
             STAs[1].append(float(row[(i+1)*3+1]))
             STAs[2].append(float(row[(i+1)*3+2]))
     counter = counter + 1
-
-fig = plt.figure()
+if ynFlats>xnFlats:
+    size = (6.4*(xnFlats/ynFlats), 6.4)
+else:
+    size = (6.4, 6.4*(ynFlats/xnFlats))
+fig = plt.figure(figsize=size)
 # ax = fig.add_subplot(111, projection='3d')
 # ax.scatter(APs[0], APs[1], APs[2], c='b', marker='o')
 plt.plot(APs[0][showFloor*xnFlats*ynFlats:(showFloor+1)*xnFlats*ynFlats],
@@ -48,12 +51,15 @@ plt.plot(APs[0][showFloor*xnFlats*ynFlats:(showFloor+1)*xnFlats*ynFlats],
          'bo')
 plt.plot(STAs[0][showFloor*xnFlats*ynFlats*nSta:(showFloor+1)*xnFlats*ynFlats*nSta],
          STAs[1][showFloor*xnFlats*ynFlats*nSta:(showFloor+1)*xnFlats*ynFlats*nSta],
-         'r^')
-plt.xticks(map(lambda x : x * 10, list(range(xnFlats))))
-plt.yticks(map(lambda x : x * 10, list(range(ynFlats))))
+         'r.')
+plt.xticks(map(lambda x : x * 10, list(range(xnFlats+1))))
+plt.yticks(map(lambda x : x * 10, list(range(ynFlats+1))))
 plt.grid(True)
 # ax.set_zticks([0, 3, 6])
-# ax.set_xlim(0, 20)
-# ax.set_ylim(0, 20)
+plt.xlim(0, xnFlats*10)
+plt.ylim(0, ynFlats*10)
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.axis('scaled')
 # ax.set_zlim(0, 6)
 plt.show()

@@ -10,6 +10,7 @@
 #include <string>
 #include <cmath>
 #include <iostream>
+#include <fstream>
 #include <cstdlib>
 
 using namespace ns3;
@@ -89,38 +90,41 @@ main (int argc, char *argv[])
   Ptr<ConstantPositionMobilityModel> cpmmSta[nFlats][nSta];
   srand(RngRun);
   uint32_t xApRand, yApRand, xStaRand, yStaRand;
-  std::cout << "xAP;yAP;zAP;";
+  std::ofstream csv_file;
+  csv_file.open("nodes.csv");
+  csv_file << "xAP;yAP;zAP;";
   for(uint32_t j=0;j<nSta;j++){
-    std::cout << "xSTA" << j << ";ySTA" << j << ";zSTA" << j << ";";
+    csv_file << "xSTA" << j << ";ySTA" << j << ";zSTA" << j << ";";
   }
-  std::cout << std::endl;
+  csv_file << std::endl;
   for(uint32_t i=0;i<nFlats;i++){
     xApRand = (rand() % 9) + 1;
     yApRand = (rand() % 9) + 1;
     cpmmAp[i] = wifiApNodes.Get(i)->GetObject<ConstantPositionMobilityModel> ();
     cpmmAp[i]->SetPosition(Vector((xApRand+i*10) % (xnFlats*10), int(yApRand+10*ceil(i/xnFlats)) % (ynFlats*10), 1.5 + 3*int(ceil(i/(xnFlats*ynFlats)))));
-    std::cout << cpmmAp[i]->GetPosition().x << ";" << cpmmAp[i]->GetPosition().y << ";" << cpmmAp[i]->GetPosition().z << ";";
+    csv_file << cpmmAp[i]->GetPosition().x << ";" << cpmmAp[i]->GetPosition().y << ";" << cpmmAp[i]->GetPosition().z << ";";
     for(uint32_t j=0;j<nSta;j++){
         xStaRand = (rand() % 9) + 1;
         yStaRand = (rand() % 9) + 1;
         cpmmSta[i][j] = wifiStaNodes.Get(i)->GetObject<ConstantPositionMobilityModel> ();
         cpmmSta[i][j]->SetPosition(Vector((xStaRand+i*10) % (xnFlats*10), int(yStaRand+10*ceil(i/xnFlats)) % (ynFlats*10), 1.5 + 3*int(ceil(i/(xnFlats*ynFlats)))));
-        std::cout << cpmmSta[i][j]->GetPosition().x << ";" << cpmmSta[i][j]->GetPosition().y << ";" << cpmmSta[i][j]->GetPosition().z << ";";
+        csv_file << cpmmSta[i][j]->GetPosition().x << ";" << cpmmSta[i][j]->GetPosition().y << ";" << cpmmSta[i][j]->GetPosition().z << ";";
     }
-    std::cout << std::endl;
+    csv_file << std::endl;
   }
-  
+  csv_file.close();
+
   BuildingsHelper::MakeMobilityModelConsistent ();
   //TODO: Implement building aware pathloss model
-  
+
   //TODO: Add layer 3 (Internet Stack)
-  
+
   //TODO: Setup applications (e.g. UdpClient)
-  
+
   //TODO: Save pcap files
-  
+
   //TODO: Perform simulation
-  
-  
+
+
   return 0;
 }
