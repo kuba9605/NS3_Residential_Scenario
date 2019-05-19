@@ -4,9 +4,12 @@
 #include "ns3/wifi-module.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/applications-module.h"
-#include <ns3/buildings-module.h>
+#include "ns3/mobility-module.h"
+#include "ns3/buildings-module.h"
 
 #include <string>
+#include <cmath>
+#include <iostream>
 
 using namespace ns3;
 
@@ -15,9 +18,9 @@ NS_LOG_COMPONENT_DEFINE ("Residential_Scenario");
 int
 main (int argc, char *argv[])
 {
-  uint32_t nFloors = 3;
-  uint32_t xnFlats = 4;
-  uint32_t ynFlats = 4;
+  uint32_t nFloors = 2;
+  uint32_t xnFlats = 2;
+  uint32_t ynFlats = 2;
   uint32_t nSta = 1;
 
   CommandLine cmd;
@@ -73,5 +76,23 @@ main (int argc, char *argv[])
     }
   }
 
+  MobilityHelper mobility;
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility.Install(wifiApNodes);
+  mobility.Install(wifiStaNodes);
+  BuildingsHelper::Install (wifiApNodes);
+  BuildingsHelper::Install (wifiStaNodes);
+  Ptr<ConstantPositionMobilityModel> cpmmAp[nFlats];
+  Ptr<ConstantPositionMobilityModel> cpmmSta[nFlats][nSta];
+  for(uint32_t i=0;i<nFlats;i++){
+    cpmmAp[i] = wifiApNodes.Get(i)->GetObject<ConstantPositionMobilityModel> ();
+    cpmmAp[i]->SetPosition(Vector((5+i*10) % (xnFlats*10), int(5+10*ceil(i/xnFlats)) % (ynFlats*10), 1.5 + 3*int(ceil(i/(xnFlats*ynFlats)))));
+    std::cout << "AP Postion: " << cpmmAp[i]->GetPosition() << std::endl;
+    for(uint32_t j=0;j<nSta;j++){
+        cpmmSta[i][j] = wifiStaNodes.Get(i)->GetObject<ConstantPositionMobilityModel> ();
+        cpmmSta[i][j]->SetPosition(Vector((3+i*10) % (xnFlats*10), int(7+10*ceil(i/xnFlats)) % (ynFlats*10), 1.5 + 3*int(ceil(i/(xnFlats*ynFlats)))));
+        std::cout << "\tSTA Postion: " << cpmmSta[i][j]->GetPosition() << std::endl;
+    }
+  }
   return 0;
 }
