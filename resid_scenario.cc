@@ -10,6 +10,7 @@
 #include <string>
 #include <cmath>
 #include <iostream>
+#include <cstdlib>
 
 using namespace ns3;
 
@@ -22,12 +23,14 @@ main (int argc, char *argv[])
   uint32_t xnFlats = 2;
   uint32_t ynFlats = 2;
   uint32_t nSta = 1;
+  uint32_t RngRun = 0;
 
   CommandLine cmd;
   cmd.AddValue("nFloors", "Number of floors", nFloors);
   cmd.AddValue("xnFlats", "Number of flats per floor in x axis", xnFlats);
   cmd.AddValue("ynFlats", "Number of flats per floor in y axis", ynFlats);
   cmd.AddValue("nSta", "Number of stations per floor", nSta);
+  cmd.AddValue("RngRun", "Number of stations per floor", RngRun);
   cmd.Parse (argc, argv);
 
   double x_min = 0.0;
@@ -84,16 +87,27 @@ main (int argc, char *argv[])
   BuildingsHelper::Install (wifiStaNodes);
   Ptr<ConstantPositionMobilityModel> cpmmAp[nFlats];
   Ptr<ConstantPositionMobilityModel> cpmmSta[nFlats][nSta];
-  //TODO: XY position of APs and STAs should be random within the flat
+  srand(RngRun);
+  uint32_t xApRand, yApRand, xStaRand, yStaRand;
+  std::cout << "xAP;yAP;zAP;";
+  for(uint32_t j=0;j<nSta;j++){
+    std::cout << "xSTA" << j << ";ySTA" << j << ";zSTA" << j << ";";
+  }
+  std::cout << std::endl;
   for(uint32_t i=0;i<nFlats;i++){
+    xApRand = (rand() % 9) + 1;
+    yApRand = (rand() % 9) + 1;
     cpmmAp[i] = wifiApNodes.Get(i)->GetObject<ConstantPositionMobilityModel> ();
-    cpmmAp[i]->SetPosition(Vector((5+i*10) % (xnFlats*10), int(5+10*ceil(i/xnFlats)) % (ynFlats*10), 1.5 + 3*int(ceil(i/(xnFlats*ynFlats)))));
-    std::cout << "AP Postion: " << cpmmAp[i]->GetPosition() << std::endl;
+    cpmmAp[i]->SetPosition(Vector((xApRand+i*10) % (xnFlats*10), int(yApRand+10*ceil(i/xnFlats)) % (ynFlats*10), 1.5 + 3*int(ceil(i/(xnFlats*ynFlats)))));
+    std::cout << cpmmAp[i]->GetPosition().x << ";" << cpmmAp[i]->GetPosition().y << ";" << cpmmAp[i]->GetPosition().z << ";";
     for(uint32_t j=0;j<nSta;j++){
+        xStaRand = (rand() % 9) + 1;
+        yStaRand = (rand() % 9) + 1;
         cpmmSta[i][j] = wifiStaNodes.Get(i)->GetObject<ConstantPositionMobilityModel> ();
-        cpmmSta[i][j]->SetPosition(Vector((3+i*10) % (xnFlats*10), int(7+10*ceil(i/xnFlats)) % (ynFlats*10), 1.5 + 3*int(ceil(i/(xnFlats*ynFlats)))));
-        std::cout << "\tSTA Postion: " << cpmmSta[i][j]->GetPosition() << std::endl;
+        cpmmSta[i][j]->SetPosition(Vector((xStaRand+i*10) % (xnFlats*10), int(yStaRand+10*ceil(i/xnFlats)) % (ynFlats*10), 1.5 + 3*int(ceil(i/(xnFlats*ynFlats)))));
+        std::cout << cpmmSta[i][j]->GetPosition().x << ";" << cpmmSta[i][j]->GetPosition().y << ";" << cpmmSta[i][j]->GetPosition().z << ";";
     }
+    std::cout << std::endl;
   }
   
   BuildingsHelper::MakeMobilityModelConsistent ();
