@@ -6,6 +6,9 @@
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/buildings-module.h"
+#include "ns3/buildings-propagation-loss-model.h"
+#include "ns3/building.h"
+#include "ns3/buildings-helper.h"
 
 #include <string>
 #include <cmath>
