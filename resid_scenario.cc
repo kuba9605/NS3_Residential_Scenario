@@ -58,6 +58,7 @@ main (int argc, char *argv[])
   wifiApNodes.Create(nFlats);
 
   YansWifiChannelHelper channel = YansWifiChannelHelper::Default();
+  channel.AddPropagationLoss("ns3::HybridBuildingsPropagationLossModel");
   YansWifiPhyHelper phy = YansWifiPhyHelper::Default();
   phy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
   phy.SetChannel(channel.Create());
