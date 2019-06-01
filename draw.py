@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import csv
 import sys
@@ -13,13 +13,15 @@ parser.add_argument('--nFloors', type=int, required=True, dest='nFloors')
 parser.add_argument('--xnFlats', type=int, required=True, dest='xnFlats')
 parser.add_argument('--ynFlats', type=int, required=True, dest='ynFlats')
 parser.add_argument('--nSta', type=int, required=True, dest='nSta')
-parser.add_argument('--showFloor', type=int, required=True, dest='showFloor')
+parser.add_argument('--side', nargs=3, dest='side', default=[False, 0, 0])
+parser.add_argument('--showFloor', type=int, dest='showFloor')
 args = parser.parse_args()
 
 nFloors = args.nFloors
 xnFlats = args.xnFlats
 ynFlats = args.ynFlats
 nSta = args.nSta
+side = args.side
 showFloor = args.showFloor
 
 csv_file = open('nodes.csv', 'r')
@@ -39,27 +41,73 @@ for row in csv_reader:
             STAs[1].append(float(row[(i+1)*3+1]))
             STAs[2].append(float(row[(i+1)*3+2]))
     counter = counter + 1
-if ynFlats>xnFlats:
-    size = (6.4*(xnFlats/ynFlats), 6.4)
+if not side[0]:
+    if ynFlats>xnFlats:
+        size = (6.4*(xnFlats/ynFlats), 6.4)
+    else:
+        size = (6.4, 6.4*(ynFlats/xnFlats))
+        fig = plt.figure(figsize=size)
+    # ax = fig.add_subplot(111, projection='3d')
+    # ax.scatter(APs[0], APs[1], APs[2], c='b', marker='o')
+    plt.plot(APs[0][showFloor*xnFlats*ynFlats:(showFloor+1)*xnFlats*ynFlats],
+             APs[1][showFloor*xnFlats*ynFlats:(showFloor+1)*xnFlats*ynFlats],
+             'bo')
+    plt.plot(STAs[0][showFloor*xnFlats*ynFlats*nSta:(showFloor+1)*xnFlats*ynFlats*nSta],
+             STAs[1][showFloor*xnFlats*ynFlats*nSta:(showFloor+1)*xnFlats*ynFlats*nSta],
+             'r.')
+    plt.xticks(map(lambda x : x * 10, list(range(xnFlats+1))))
+    plt.yticks(map(lambda x : x * 10, list(range(ynFlats+1))))
+    plt.grid(True)
+    # ax.set_zticks([0, 3, 6])
+    plt.xlim(0, xnFlats*10)
+    plt.ylim(0, ynFlats*10)
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    # plt.axis('scaled')
+    # ax.set_zlim(0, 6)
+    plt.show()
 else:
-    size = (6.4, 6.4*(ynFlats/xnFlats))
-fig = plt.figure(figsize=size)
-# ax = fig.add_subplot(111, projection='3d')
-# ax.scatter(APs[0], APs[1], APs[2], c='b', marker='o')
-plt.plot(APs[0][showFloor*xnFlats*ynFlats:(showFloor+1)*xnFlats*ynFlats],
-         APs[1][showFloor*xnFlats*ynFlats:(showFloor+1)*xnFlats*ynFlats],
-         'bo')
-plt.plot(STAs[0][showFloor*xnFlats*ynFlats*nSta:(showFloor+1)*xnFlats*ynFlats*nSta],
-         STAs[1][showFloor*xnFlats*ynFlats*nSta:(showFloor+1)*xnFlats*ynFlats*nSta],
-         'r.')
-plt.xticks(map(lambda x : x * 10, list(range(xnFlats+1))))
-plt.yticks(map(lambda x : x * 10, list(range(ynFlats+1))))
-plt.grid(True)
-# ax.set_zticks([0, 3, 6])
-plt.xlim(0, xnFlats*10)
-plt.ylim(0, ynFlats*10)
-plt.xlabel('X')
-plt.ylabel('Y')
-# plt.axis('scaled')
-# ax.set_zlim(0, 6)
-plt.show()
+    fig = plt.figure()
+    # ax = fig.add_subplot(111, projection='3d')
+    # ax.scatter(APs[0], APs[1], APs[2], c='b', marker='o')
+    xory = 0
+    l = xnFlats
+    if side[1]=='y':
+        xory = 1
+        l = ynFlats
+    APnew = [[], []]
+    STAnew = [[], []]
+    for k in range(len(APs[xory])):
+        if k%4 in map(lambda x: x+l*int(side[2]), range(l)):
+            APnew[0].append(APs[xory][k])
+    for k in range(len(APs[2])):
+        if k%4 in map(lambda x: x+l*int(side[2]), range(l)):
+            APnew[1].append(APs[2][k])
+    for k in range(len(STAs[xory])):
+        if k%4 in map(lambda x: x+l*int(side[2]), range(l)):
+            STAnew[0].append(STAs[xory][k])
+    for k in range(len(STAs[2])):
+        if k%4 in map(lambda x: x+l*int(side[2]), range(l)):
+            STAnew[1].append(STAs[2][k])
+    print(APnew)
+    print(APs)
+    plt.plot(APnew[0],
+             APnew[1],
+             'bo')
+    plt.plot(STAnew[0],
+             STAnew[1],
+             'r.')
+    plt.xticks(map(lambda x : x * 10, list(range(l+1))))
+    plt.yticks(map(lambda x : x * 3, list(range(nFloors+1))))
+    plt.grid(True)
+    # ax.set_zticks([0, 3, 6])
+    plt.xlim(0, l*10)
+    plt.ylim(0, nFloors*3)
+    if side[1]=='y':
+        plt.xlabel('Y')
+    else:
+        plt.xlabel('X')
+    plt.ylabel('Z')
+    # plt.axis('scaled')
+    # ax.set_zlim(0, 6)
+    plt.show()
