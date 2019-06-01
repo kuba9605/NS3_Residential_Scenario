@@ -122,6 +122,25 @@ main (int argc, char *argv[])
   //TODO: Implement building aware pathloss model
 
   //TODO: Add layer 3 (Internet Stack)
+  InternetStackHelper stack[nFlats];
+
+  for(uint32_t i=0;i<nFlats;i++){
+    stack[i].Install (wifiApNodes.Get(i));
+    
+    Ipv4AddressHelper address;
+    address.SetBase ("192.168.0.0", "255.255.255.0");
+    Ipv4InterfaceContainer apInterface;
+    apInterface = address.Assign (apDevices[i]);
+    
+    for(uint32_t j=0;j<nSta;j++){
+      stack[i].Install (wifiStaNodes.Get(j));
+
+      Ipv4InterfaceContainer staInterface;
+      staInterface = address.Assign (staDevices[i][j]);
+
+      Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
+    }
+  }
 
   //TODO: Setup applications (e.g. UdpClient)
 
@@ -132,3 +151,4 @@ main (int argc, char *argv[])
 
   return 0;
 }
+
