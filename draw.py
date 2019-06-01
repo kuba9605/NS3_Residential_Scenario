@@ -3,26 +3,38 @@
 import csv
 import sys
 import argparse
+import ConfigParser
 
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import numpy as np
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--nFloors', type=int, required=True, dest='nFloors')
-parser.add_argument('--xnFlats', type=int, required=True, dest='xnFlats')
-parser.add_argument('--ynFlats', type=int, required=True, dest='ynFlats')
-parser.add_argument('--nSta', type=int, required=True, dest='nSta')
-parser.add_argument('--side', nargs=3, dest='side', default=[False, 0, 0])
-parser.add_argument('--showFloor', type=int, dest='showFloor')
-args = parser.parse_args()
+config = None
+try:
+    config = ConfigParser.RawConfigParser()
+    config.read('config.conf')
+    nFloors = config.getint('CONFIG', 'nFloors')
+    xnFlats = config.getint('CONFIG', 'xnFlats')
+    ynFlats = config.getint('CONFIG', 'ynFlats')
+    nSta = config.getint('CONFIG', 'nSta')
+    side = config.get('CONFIG', 'side').split(",")
+    showFloor = config.getint('CONFIG', 'showFloor')
+except:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--nFloors', type=int, required=True, dest='nFloors')
+    parser.add_argument('--xnFlats', type=int, required=True, dest='xnFlats')
+    parser.add_argument('--ynFlats', type=int, required=True, dest='ynFlats')
+    parser.add_argument('--nSta', type=int, required=True, dest='nSta')
+    parser.add_argument('--side', nargs=3, dest='side', default=[False, 0, 0])
+    parser.add_argument('--showFloor', type=int, dest='showFloor')
+    args = parser.parse_args()
 
-nFloors = args.nFloors
-xnFlats = args.xnFlats
-ynFlats = args.ynFlats
-nSta = args.nSta
-side = args.side
-showFloor = args.showFloor
+    nFloors = args.nFloors
+    xnFlats = args.xnFlats
+    ynFlats = args.ynFlats
+    nSta = args.nSta
+    side = args.side
+    showFloor = args.showFloor
 
 csv_file = open('nodes.csv', 'r')
 csv_reader = csv.reader(csv_file, delimiter=';')
