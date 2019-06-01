@@ -40,7 +40,7 @@ main (int argc, char *argv[])
   double x_min = 0.0;
   double x_max = xnFlats * 10.0;
   double y_min = 0.0;
-  double y_max = ynFlats * 20.0;
+  double y_max = ynFlats * 10.0;
   double z_min = 0.0;
   double z_max = nFloors * 3.0;
   Ptr<Building> b = CreateObject <Building> ();
@@ -126,12 +126,12 @@ main (int argc, char *argv[])
 
   for(uint32_t i=0;i<nFlats;i++){
     stack[i].Install (wifiApNodes.Get(i));
-    
+
     Ipv4AddressHelper address;
     address.SetBase ("192.168.0.0", "255.255.255.0");
     Ipv4InterfaceContainer apInterface;
     apInterface = address.Assign (apDevices[i]);
-    
+
     for(uint32_t j=0;j<nSta;j++){
       stack[i].Install (wifiStaNodes.Get(j));
 
@@ -151,4 +151,3 @@ main (int argc, char *argv[])
 
   return 0;
 }
-
