@@ -4,6 +4,7 @@ import csv
 import sys
 import argparse
 import ConfigParser
+from pprint import pprint
 
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
@@ -19,6 +20,15 @@ try:
     nSta = config.getint('CONFIG', 'nSta')
     side = config.get('CONFIG', 'side').split(",")
     showFloor = config.getint('CONFIG', 'showFloor')
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--nFloors', type=int, dest='nFloors', default=nFloors)
+    parser.add_argument('--xnFlats', type=int, dest='xnFlats', default=xnFlats)
+    parser.add_argument('--ynFlats', type=int, dest='ynFlats', default=ynFlats)
+    parser.add_argument('--nSta', type=int, dest='nSta', default=nSta)
+    parser.add_argument('--side', nargs=3, dest='side', default=side)
+    parser.add_argument('--showFloor', type=int, dest='showFloor', default=showFloor)
+    args = parser.parse_args()
 except:
     parser = argparse.ArgumentParser()
     parser.add_argument('--nFloors', type=int, required=True, dest='nFloors')
@@ -26,15 +36,15 @@ except:
     parser.add_argument('--ynFlats', type=int, required=True, dest='ynFlats')
     parser.add_argument('--nSta', type=int, required=True, dest='nSta')
     parser.add_argument('--side', nargs=3, dest='side', default=[False, 0, 0])
-    parser.add_argument('--showFloor', type=int, dest='showFloor')
+    parser.add_argument('--showFloor', type=int, dest='showFloor', default=0)
     args = parser.parse_args()
 
-    nFloors = args.nFloors
-    xnFlats = args.xnFlats
-    ynFlats = args.ynFlats
-    nSta = args.nSta
-    side = args.side
-    showFloor = args.showFloor
+nFloors = args.nFloors
+xnFlats = args.xnFlats
+ynFlats = args.ynFlats
+nSta = args.nSta
+side = args.side
+showFloor = args.showFloor
 
 csv_file = open('nodes.csv', 'r')
 csv_reader = csv.reader(csv_file, delimiter=';')
@@ -53,7 +63,7 @@ for row in csv_reader:
             STAs[1].append(float(row[(i+1)*3+1]))
             STAs[2].append(float(row[(i+1)*3+2]))
     counter = counter + 1
-if not side[0]:
+if side[0]=='False':
     if ynFlats>xnFlats:
         size = (6.4*(xnFlats/ynFlats), 6.4)
     else:
@@ -75,6 +85,7 @@ if not side[0]:
     plt.ylim(0, ynFlats*10)
     plt.xlabel('X')
     plt.ylabel('Y')
+    plt.title("Floor: {}".format(showFloor))
     # plt.axis('scaled')
     # ax.set_zlim(0, 6)
     plt.show()
@@ -90,19 +101,19 @@ else:
     APnew = [[], []]
     STAnew = [[], []]
     for k in range(len(APs[xory])):
-        if k%4 in map(lambda x: x+l*int(side[2]), range(l)):
+        if k%(xnFlats*ynFlats) in map(lambda x: x+l*int(side[2]), range(l)):
             APnew[0].append(APs[xory][k])
     for k in range(len(APs[2])):
-        if k%4 in map(lambda x: x+l*int(side[2]), range(l)):
+        if k%(xnFlats*ynFlats) in map(lambda x: x+l*int(side[2]), range(l)):
             APnew[1].append(APs[2][k])
     for k in range(len(STAs[xory])):
-        if k%4 in map(lambda x: x+l*int(side[2]), range(l)):
+        if k%(xnFlats*ynFlats*nSta) in map(lambda x: x+l*int(side[2])*nSta, range(l*nSta)):
             STAnew[0].append(STAs[xory][k])
     for k in range(len(STAs[2])):
-        if k%4 in map(lambda x: x+l*int(side[2]), range(l)):
+        if k%(xnFlats*ynFlats*nSta) in map(lambda x: x+l*int(side[2])*nSta, range(l*nSta)):
             STAnew[1].append(STAs[2][k])
-    print(APnew)
-    print(APs)
+    pprint(STAs)
+    pprint(STAnew)
     plt.plot(APnew[0],
              APnew[1],
              'bo')
@@ -120,6 +131,7 @@ else:
     else:
         plt.xlabel('X')
     plt.ylabel('Z')
+    plt.title("Wall: {}".format(side[2]))
     # plt.axis('scaled')
     # ax.set_zlim(0, 6)
     plt.show()
