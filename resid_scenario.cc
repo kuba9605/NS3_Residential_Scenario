@@ -42,6 +42,10 @@ main (int argc, char *argv[])
   cmd.AddValue("ynFlats", "Number of flats per floor in y axis", ynFlats);
   cmd.AddValue("nSta", "Number of stations per floor", nSta);
   cmd.AddValue("RngRun", "Number of stations per floor", RngRun);
+  cmd.AddValue("offeredLoad", "", offeredLoad);
+  cmd.AddValue("simulationTime", "", simulationTime);
+  cmd.AddValue("warmupTime", "", warmupTime);
+  cmd.AddValue("packetSize", "", packetSize);
   cmd.Parse (argc, argv);
 
   double x_min = 0.0;
