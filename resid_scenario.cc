@@ -20,6 +20,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("Residential_Scenario");
 
+void installTrafficGenerator(Ptr<ns3::Node> fromNode, Ptr<ns3::Node> toNode, int port, std::string offeredLoad, int packetSize, int simulationTime, int warmupTime);
 void PopulateARPcache ();
 
 int
@@ -30,6 +31,10 @@ main (int argc, char *argv[])
   uint32_t ynFlats = 2;
   uint32_t nSta = 1;
   uint32_t RngRun = 0;
+  std::string offeredLoad = "1"; //Mbps
+	uint32_t simulationTime = 10;
+	uint32_t warmupTime = 1;
+	uint32_t packetSize = 1472;
 
   CommandLine cmd;
   cmd.AddValue("nFloors", "Number of floors", nFloors);
@@ -127,7 +132,7 @@ main (int argc, char *argv[])
   InternetStackHelper stack;
   stack.Install(wifiApNodes);
   for(uint32_t i = 0; i < nFlats; i++){
-    stack.Install(wifiStaNodes.Get(i));
+    stack.Install(wifiStaNodes.Get(0));
   }
 
 	Ipv4AddressHelper address;
@@ -147,6 +152,13 @@ main (int argc, char *argv[])
   PopulateARPcache ();
 
   //TODO: Setup applications (e.g. UdpClient)
+
+  uint32_t port = 9;
+	for(uint32_t i = 0; i < nFlats; i++){
+		for(uint32_t j = 0; j < nSta; j++){
+			installTrafficGenerator(wifiStaNodes.Get(0), wifiApNodes.Get(i), port++, offeredLoad, packetSize, simulationTime, warmupTime);
+    }
+	}
 
   //TODO: Save pcap files
 
@@ -204,4 +216,34 @@ void PopulateARPcache () {
 			ipIface->SetAttribute ("ArpCache", PointerValue (arp) );
 		}
 	}
+}
+
+void installTrafficGenerator(Ptr<ns3::Node> fromNode, Ptr<ns3::Node> toNode, int port, std::string offeredLoad, int packetSize, int simulationTime, int warmupTime ) {
+
+	Ptr<Ipv4> ipv4 = toNode->GetObject<Ipv4> (); // Get Ipv4 instance of the node
+	Ipv4Address addr = ipv4->GetAddress (1, 0).GetLocal (); // Get Ipv4InterfaceAddress of xth interface.
+
+	ApplicationContainer sourceApplications, sinkApplications;
+
+	uint8_t tosValue = 0x70; //AC_BE
+	
+	//Add random fuzz to app start time
+	double min = 0.0;
+	double max = 1.0;
+	Ptr<UniformRandomVariable> fuzz = CreateObject<UniformRandomVariable> ();
+	fuzz->SetAttribute ("Min", DoubleValue (min));
+	fuzz->SetAttribute ("Max", DoubleValue (max));		
+
+	InetSocketAddress sinkSocket (addr, port);
+	sinkSocket.SetTos (tosValue);
+	OnOffHelper onOffHelper ("ns3::UdpSocketFactory", sinkSocket);
+	onOffHelper.SetConstantRate (DataRate (offeredLoad + "Mbps"), packetSize);
+	sourceApplications.Add (onOffHelper.Install (fromNode)); //fromNode
+	PacketSinkHelper packetSinkHelper ("ns3::UdpSocketFactory", sinkSocket);
+	sinkApplications.Add (packetSinkHelper.Install (toNode)); //toNode
+
+	sinkApplications.Start (Seconds (warmupTime));
+	sinkApplications.Stop (Seconds (simulationTime));
+	sourceApplications.Start (Seconds (warmupTime+fuzz->GetValue ()));
+	sourceApplications.Stop (Seconds (simulationTime));
 }
