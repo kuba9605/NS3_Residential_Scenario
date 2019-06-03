@@ -69,6 +69,7 @@ main (int argc, char *argv[])
   YansWifiPhyHelper phy = YansWifiPhyHelper::Default();
   phy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
   phy.SetChannel(channel.Create());
+  phy.Set("ChannelNumber", UintegerValue(36));
 
   WifiHelper wifi;
   wifi.SetStandard(WIFI_PHY_STANDARD_80211n_5GHZ);
@@ -80,14 +81,12 @@ main (int argc, char *argv[])
   Ssid ssid;
   for(uint32_t i=0;i<nFlats;i++){
     ssid = Ssid("network_" + std::to_string(i));
-    phy.Set("ChannelNumber", UintegerValue(36));
-
     mac.SetType("ns3::ApWifiMac", "Ssid", SsidValue(ssid), "BeaconGeneration", BooleanValue(true));
     apDevices[i] = wifi.Install(phy, mac, wifiApNodes.Get(i));
 
     for(uint32_t j=0;j<nSta;j++){
       mac.SetType("ns3::StaWifiMac", "Ssid", SsidValue(ssid));
-      staDevices[i][j] = wifi.Install(phy, mac, wifiStaNodes.Get(0));
+      staDevices[i][j] = wifi.Install(phy, mac, wifiStaNodes.Get(i*nSta+j));
     }
   }
 
@@ -126,12 +125,12 @@ main (int argc, char *argv[])
   csv_file.close();
 
   BuildingsHelper::MakeMobilityModelConsistent ();
-  //TODO: Implement building aware pathloss model
+  //Building aware pathloss model
 
-  //TODO: Add layer 3 (Internet Stack)
+  //Layer 3 (Internet Stack)
   InternetStackHelper stack;
   stack.Install(wifiApNodes);
-  for(uint32_t i = 0; i < nFlats; i++){
+  for(uint32_t i = 0; i < (nFlats * nSta); i++){
     stack.Install(wifiStaNodes.Get(i));
   }
 
@@ -151,12 +150,12 @@ main (int argc, char *argv[])
 
   PopulateARPcache ();
 
-  //TODO: Setup applications (e.g. UdpClient)
+  //Applications (e.g. UdpClient)
 
   uint32_t port = 9;
 	for(uint32_t i = 0; i < nFlats; i++){
 		for(uint32_t j = 0; j < nSta; j++){
-			installTrafficGenerator(wifiStaNodes.Get(0), wifiApNodes.Get(i), port++, offeredLoad, packetSize, simulationTime, warmupTime);
+			installTrafficGenerator(wifiStaNodes.Get(i*nSta + j), wifiApNodes.Get(i), port++, offeredLoad, packetSize, simulationTime, warmupTime);
     }
 	}
 
@@ -226,13 +225,13 @@ void installTrafficGenerator(Ptr<ns3::Node> fromNode, Ptr<ns3::Node> toNode, int
 	ApplicationContainer sourceApplications, sinkApplications;
 
 	uint8_t tosValue = 0x70; //AC_BE
-	
+
 	//Add random fuzz to app start time
 	double min = 0.0;
 	double max = 1.0;
 	Ptr<UniformRandomVariable> fuzz = CreateObject<UniformRandomVariable> ();
 	fuzz->SetAttribute ("Min", DoubleValue (min));
-	fuzz->SetAttribute ("Max", DoubleValue (max));		
+	fuzz->SetAttribute ("Max", DoubleValue (max));
 
 	InetSocketAddress sinkSocket (addr, port);
 	sinkSocket.SetTos (tosValue);
