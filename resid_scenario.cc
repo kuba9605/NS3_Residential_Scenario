@@ -132,7 +132,7 @@ main (int argc, char *argv[])
   InternetStackHelper stack;
   stack.Install(wifiApNodes);
   for(uint32_t i = 0; i < nFlats; i++){
-    stack.Install(wifiStaNodes.Get(0));
+    stack.Install(wifiStaNodes.Get(i));
   }
 
 	Ipv4AddressHelper address;
