@@ -163,9 +163,16 @@ main (int argc, char *argv[])
     }
 	}
 
-  //TODO: Save pcap files
+  for(uint32_t i=0;i<nFlats;i++){
+    phy.EnablePcap("pcap_ap", apDevices[i]);
+	for(uint32_t j=0;j<nSta;j++){
+		  phy.EnablePcap("pcap_sta", staDevices[i][j]);
+	}
+  }
 
-  //TODO: Perform simulation
+
+  Simulator::Run ();
+  Simulator::Destroy ();
 
 
   return 0;
