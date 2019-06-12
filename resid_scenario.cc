@@ -165,14 +165,14 @@ main (int argc, char *argv[])
 
   for(uint32_t i=0;i<nFlats;i++){
     phy.EnablePcap("pcap_ap", apDevices[i]);
-	for(uint32_t j=0;j<nSta;j++){
-		  phy.EnablePcap("pcap_sta", staDevices[i][j]);
-	}
+	// for(uint32_t j=0;j<nSta;j++){
+	// 	  phy.EnablePcap("pcap_sta", staDevices[i][j]);
+	// }
   }
 
-
+  Simulator::Stop(Seconds (simulationTime + 1));
   Simulator::Run ();
-  Simulator::Destroy ();
+  // Simulator::Destroy ();
 
 
   return 0;
