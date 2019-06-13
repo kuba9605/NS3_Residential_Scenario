@@ -9,13 +9,17 @@
 #include "ns3/buildings-propagation-loss-model.h"
 #include "ns3/building.h"
 #include "ns3/buildings-helper.h"
+#include "ns3/flow-monitor-module.h"
 
 #include <string>
 #include <cmath>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <ctime>
+#include <iomanip>
 
+using namespace std;
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("Residential_Scenario");
@@ -172,9 +176,34 @@ main (int argc, char *argv[])
 	// }
   }
 
-  Simulator::Stop(Seconds (simulationTime + 1));
+  FlowMonitorHelper flowmon;
+	Ptr<FlowMonitor> monitor = flowmon.InstallAll();
+
+  Simulator::Stop(Seconds(simulationTime + 1));
   Simulator::Run ();
   // Simulator::Destroy ();
+
+  /* Calculate results */
+	double flowThr;
+	double flowDel;
+
+	ofstream myfile;
+	myfile.open ("resid_scenario.csv", ios::app);
+
+
+	Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
+	std::map<FlowId, FlowMonitor::FlowStats> stats = monitor->GetFlowStats ();
+	for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i) {
+		auto time = std::time(nullptr); //Get timestamp
+		auto tm = *std::localtime(&time);
+		Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
+		flowThr=i->second.rxBytes * 8.0 / (i->second.timeLastRxPacket.GetSeconds () - i->second.timeFirstTxPacket.GetSeconds ()) / 1024 / 1024;
+		flowDel=i->second.delaySum.GetSeconds () / i->second.rxPackets;
+		NS_LOG_UNCOND ("Flow " << i->first  << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\tThroughput: " <<  flowThr  << " Mbps\tTime: " << i->second.timeLastRxPacket.GetSeconds () - i->second.timeFirstTxPacket.GetSeconds () << "\t Delay: " << flowDel << " s \n");
+		myfile << std::put_time(&tm, "%Y-%m-%d %H:%M") << "," << offeredLoad << "," << RngSeedManager::GetRun() << "," << t.sourceAddress << "," << t.destinationAddress << "," << flowThr << "," << flowDel;
+		myfile << std::endl;
+	}
+	myfile.close();
 
 
   return 0;
